@@ -1,5 +1,5 @@
 #include <avr/io.h>
-#include <Peripherals/usart.h>
+#include <Peripherals/desktopComm.h>
 #include <util/delay.h>
 #include <stdio.h>
 
@@ -9,9 +9,12 @@
 #include <util/setbaud.h>
 #include <avr/interrupt.h>
 
-char numberBuffer[NUMBER_BUFFER_SIZE];
-uint8_t numberBufferIndex = 0;
+uint8_t numberBuffer[NUMBER_BUFFER_SIZE];
 uint16_t recentNumber = 0;
+char command[COMMAND_MAX_SIZE + 1];
+uint8_t commandReading = 1;
+uint8_t newCommandAvailable = 0;
+uint8_t index = 0;
 
 void initUSART(void){
     // Set USART baud rate
@@ -54,10 +57,10 @@ void printString(const char chars[]) {
 /*
     Create integer from char array
 */
-uint16_t makeNumber(const char charArray[]){
+uint16_t makeNumber(uint8_t *charArray){
     uint8_t i = NUMBER_BUFFER_SIZE;
     uint16_t multiplier = 1;
-    uint16_t number;
+    uint16_t number = 0;
     uint8_t insignificant = 1;
 
     while(i--){
@@ -87,21 +90,54 @@ ISR(USART_RX_vect){
         sendEndOfLine();
         recentNumber = makeNumber(numberBuffer);
 
-        char log[100];
-        snprintf(log, 100, "c: %d", recentNumber);
+        char log[100] = { 0 };
+        snprintf(log, 100, "c: %s %d", command, recentNumber);
         printString(log);
+
+        newCommandAvailable = 1;
 
         for(uint8_t i = 0; i < NUMBER_BUFFER_SIZE; i++){
             numberBuffer[i] = 0;
         }
 
-        numberBufferIndex = 0;
+        for(uint8_t i = 0; i < COMMAND_MAX_SIZE; i++){
+            command[i] = 0;
+        }
+
+        commandReading = 1;
+        index = 0;
 
     } else {
         transmitByte(byte);
-        if(numberBufferIndex < NUMBER_BUFFER_SIZE){
-            numberBuffer[numberBufferIndex] = byte;
-            numberBufferIndex++;
+        if(commandReading){
+            PORTB ^= (1 << PB0);
+            if(index == COMMAND_MAX_SIZE || byte == ' '){
+                command[index] = '\0';
+                commandReading = 0;
+                index = 0;
+            } else {
+                command[index] = byte;
+                index++;
+            }
+
+        } else {
+            if(index < NUMBER_BUFFER_SIZE){
+                numberBuffer[index] = byte;
+                index++;
+            }
         }
     }
+}
+
+uint8_t getRecentNumber(){
+    return recentNumber;
+}
+
+uint8_t isNewCommand(){
+    if(newCommandAvailable){
+        newCommandAvailable = 0;
+        return 1;
+    }
+
+    return 0;
 }

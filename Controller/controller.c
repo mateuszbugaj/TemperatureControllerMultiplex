@@ -1,7 +1,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/power.h>
-#include <Peripherals/usart.h>
+#include <Peripherals/desktopComm.h>
 #include <avr/interrupt.h>
 
 int main(void){
@@ -10,9 +10,9 @@ int main(void){
     initUSART();
     sei();
     while(1){
-        PORTB ^= (1 << PB0);
-
-        _delay_ms(100);
+        if(isNewCommand()){
+            // PORTB ^= (1 << PB0);
+        }
     }
 
     return 0;

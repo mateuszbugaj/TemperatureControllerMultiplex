@@ -4,9 +4,11 @@
  */
 
 #define NUMBER_BUFFER_SIZE 8
+#define COMMAND_MAX_SIZE 3
 enum NUMBER_FORMAT {DECIMAL, BINARY, HEX};
 
 void initUSART(void);
 void printString(const char chars[]);
 void printLogNum(const char message[], int data, enum NUMBER_FORMAT type);
 uint8_t getRecentNumber(void);
+uint8_t isNewCommand(void);
