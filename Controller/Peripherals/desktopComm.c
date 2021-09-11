@@ -1,8 +1,6 @@
 #include <Peripherals/desktopComm.h>
 
 uint8_t numberBuffer[NUMBER_BUFFER_SIZE];
-uint16_t recentNumber = 0;
-char command[COMMAND_MAX_SIZE + 1];
 uint8_t commandReading = 1;
 uint8_t newCommandAvailable = 0;
 uint8_t index = 0;
@@ -79,20 +77,16 @@ ISR(USART_RX_vect){
 
     if(byte == '\r'){
         sendEndOfLine();
-        recentNumber = makeNumber(numberBuffer);
+        commandNumber = makeNumber(numberBuffer);
 
         char log[100] = { 0 };
-        snprintf(log, 100, "c: %s %d", command, recentNumber);
+        snprintf(log, 100, "c: %s %d", command, commandNumber);
         printString(log);
 
         newCommandAvailable = 1;
 
         for(uint8_t i = 0; i < NUMBER_BUFFER_SIZE; i++){
             numberBuffer[i] = 0;
-        }
-
-        for(uint8_t i = 0; i < COMMAND_MAX_SIZE; i++){
-            command[i] = 0;
         }
 
         commandReading = 1;
@@ -118,10 +112,6 @@ ISR(USART_RX_vect){
             }
         }
     }
-}
-
-uint8_t getRecentNumber(){
-    return recentNumber;
 }
 
 uint8_t isNewCommand(){
