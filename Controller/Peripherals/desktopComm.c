@@ -1,13 +1,4 @@
-#include <avr/io.h>
 #include <Peripherals/desktopComm.h>
-#include <util/delay.h>
-#include <stdio.h>
-
-#ifndef BAUD
-   #define BAUD 9600
-#endif
-#include <util/setbaud.h>
-#include <avr/interrupt.h>
 
 uint8_t numberBuffer[NUMBER_BUFFER_SIZE];
 uint16_t recentNumber = 0;
