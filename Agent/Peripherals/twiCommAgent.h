@@ -2,6 +2,9 @@
 #include <util/delay.h>
 #include <avr/interrupt.h>
 
+/* definitions for ATtiny25, ATtiny45 and ATtiny85  */
+#include <avr/iotnx5.h>
+
 /* Hardware defines */
 #define USI_DDR	DDRB
 #define USI_PORT PORTB
@@ -19,14 +22,9 @@ enum status {none,
 
 #define BUFFERSIZE 8
 
-extern volatile uint8_t tranCount;
-extern volatile uint8_t recCount;
-extern volatile uint8_t recBuffer[];
-extern volatile uint8_t tranBuffer[];
 extern volatile uint8_t comState;
 
 void USI_I2C_slave_init(uint8_t);
-void flushRecBuffer();
 
 #define LED_1 PB3
 #define LED_2 PB4
