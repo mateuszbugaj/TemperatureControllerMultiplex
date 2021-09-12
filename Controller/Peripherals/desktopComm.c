@@ -95,7 +95,6 @@ ISR(USART_RX_vect){
     } else {
         transmitByte(byte);
         if(commandReading){
-            PORTB ^= (1 << PB0);
             if(index == COMMAND_MAX_SIZE || byte == ' '){
                 command[index] = '\0';
                 commandReading = 0;

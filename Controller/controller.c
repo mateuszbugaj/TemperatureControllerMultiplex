@@ -20,7 +20,7 @@ void action(uint8_t commandCode, uint16_t number);
 
 int main(void){
     clock_prescale_set(clock_div_2);
-    DDRB |= (1 << PB0);
+    DDRB |= (1 << PB0) | (1 << PB1);
     initUSART();
     initTWI();
     sei();
@@ -31,6 +31,7 @@ int main(void){
 
         if(isError()){
             printString("TWI Error");
+            clearTWIError();
         }
     }
 
@@ -63,12 +64,16 @@ void action(uint8_t commandCode, uint16_t number){
             printString(". Getting temperature reading from the agent");
             TWIStart();
             TWISendAddress(number, READ_BYTE);
+            uint8_t data = TWIGetData(SEND_NACK);
 
-            char log[100] = { 0 };
-            snprintf(log, 100, "Data from agent %d: %d", number, TWIGetData(SEND_NACK));
-            printString(log);
-
-            TWIStop();
+            if(isError()){
+                printString(". Error while receiving data from agent");
+            } else {
+                char log[100] = { 0 };
+                snprintf(log, 100, "Data from agent %d: %d", number, data);
+                printString(log);
+                TWIStop();
+            }
             break;
 
         case COMMAND_UNDEFINED_CODE:
