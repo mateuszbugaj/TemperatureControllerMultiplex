@@ -1,11 +1,5 @@
 #include <Peripherals/twiCommAgent.h>
 
-volatile uint8_t lastReceived;
-volatile uint8_t toTransmit;
-volatile uint8_t isTransmited;
-volatile enum status comMode = none;
-uint8_t slaveAddress;
-
 /*
     USICR
         Start Condition Interrupt Enable
@@ -83,13 +77,12 @@ void initDataTransmission(){
     Activate internall pull-up resistors for SDA ans SCL
     Initialize Start Condition Mode
 */
-void USI_I2C_slave_init(uint8_t address) {
+void initTWI(uint8_t address) {
 	slaveAddress = address;
 	USI_DDR &= ~(1 << USI_SDA);
 	USI_DDR |= (1 << USI_SCL);
 	USI_PORT |= (1 << USI_SCL) | (1 << USI_SDA);
     initStartConditionMode();
-	comMode = none;
 }
 
 /*
@@ -148,44 +141,65 @@ ISR( USI_OVF_vect) {
             USIDR = 0x00;
             break;
 		
+        /*
+            masterWriteData:
+            Set comMode to slaveReceiveData
+            Initialize data reception
+            Wait  for SDA to go HIGH
+            If STOP condition occurs, initialize START condition
+        */
 		case masterWriteData:	
             comMode = slaveReceiveData;
             initDataReception();
-            // STOP condition detector
-            // wait for SDA HIGH
             while (!(USI_PIN & (1 << USI_SDA)));
-            // if STOP condition
+
             if (USI_PIN & (1 << USI_SCL)) {
                 initStartConditionMode();
             }
             break;
-							
+
+        /*
+            slaveReceiveData:
+            Set comMode back to masterWriteData
+            Rejestr received byte and toggle isNewReceived flag
+            Send ACK
+        */			
 		case slaveReceiveData:
             comMode = masterWriteData;
             lastReceived = USIDR;
+            isNewReceived = true;
             sendACK();
 
-            if(lastReceived == 4){
-                PORTB ^= (1 << LED_2);
-            }
-
             break;
-							
+
+        /*
+            masterReadData:
+            If Data Register contains 1 indicating received NACK after last transmission,
+            initialize START condition
+            Otherwise, set comMode to slaveTransmitData, load payload into USIDR and transmit it.
+        */		
 		case masterReadData:
-            // if received NACK
             if (USIDR) {
                 initStartConditionMode();
             }
             else {
                 comMode = slaveTransmitData;
-                USIDR = 53;
+                USIDR = toTransmit;
                 initDataTransmission();
             }
             break;
-							
+		
+        /*
+            Set comMode back to masterReadData
+            Receive ACK or NACK
+        */
 		case slaveTransmitData:
             comMode = masterReadData;
             receiveACK();
+            break;
+
+        default:
+            initStartConditionMode();
             break;
 	}
 }

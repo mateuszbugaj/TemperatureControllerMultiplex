@@ -1,6 +1,7 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
+#include <stdbool.h>
 
 /* definitions for ATtiny25, ATtiny45 and ATtiny85  */
 #include <avr/iotnx5.h>
@@ -12,19 +13,19 @@
 #define USI_SDA	PB0
 #define USI_SCL	PB2
 
-/* Comunication status */
-enum status {none,
-            addressMode, 
+/* Comunication modes */
+enum modes {addressMode, 
             masterReadData, 
             masterWriteData, 
             slaveReceiveData, 
             slaveTransmitData};
 
-#define BUFFERSIZE 8
+/* Data transmision variables */
+volatile uint8_t lastReceived;
+volatile bool isNewReceived;
+volatile uint8_t toTransmit;
+volatile bool isTransmited;
+volatile enum modes comMode;
+uint8_t slaveAddress;
 
-extern volatile uint8_t comState;
-
-void USI_I2C_slave_init(uint8_t);
-
-#define LED_1 PB3
-#define LED_2 PB4
+void initTWI(uint8_t);

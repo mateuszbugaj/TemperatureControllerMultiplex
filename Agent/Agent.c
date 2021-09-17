@@ -14,7 +14,7 @@ int main(void){
     clock_prescale_set(clock_div_1); // CPU Clock at 8MHz
     DDRB |= (1 << LED_1) | (1 << LED_2);
 
-    USI_I2C_slave_init(0x0f);
+    initTWI(0x0f);
     sei();
     while(1){
         PORTB ^= (1 << LED_1);
