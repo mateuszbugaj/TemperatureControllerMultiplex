@@ -27,11 +27,13 @@ int main(void){
     while(1){
         if(isNewCommand()){
             action(getCommandCode(command), commandNumber);
-        }
 
-        if(isError()){
-            printString("TWI Error");
-            clearTWIError();
+            if(isError()){
+                printString("TWI Error");
+                clearTWIError();
+            } else {
+                printString("Done");
+            }
         }
     }
 
