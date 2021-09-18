@@ -77,15 +77,12 @@ void action(uint8_t commandCode, uint16_t number){
             /* Send code */
             TWIStart();
             TWISendAddress(number, WRITE_BYTE);
-            _delay_ms(50);
             if(isError()) printString(". Error while addressing agent");
 
             TWISendData(GET_AGENT_TEMP_CODE);
             if(isError()) printString(". Error while sending command");
 
             TWIStop();
-
-            _delay_ms(50);
 
             if(!isError()){
 

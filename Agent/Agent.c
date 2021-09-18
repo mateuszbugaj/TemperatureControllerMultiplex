@@ -2,6 +2,7 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include <Peripherals/twiCommAgent.h>
+#include <Peripherals/adcTempReading.h>
 #include <avr/power.h>
 
 #define LED_1 PB4
@@ -21,16 +22,19 @@ int main(void){
     DDRB |= (1 << LED_1);
 
     initTWI(0x0f);
+    initAdcTemp();
     sei();
     while(1){
-        toTransmit = tempReading;
+        toTransmit = getTempReading();
 
         if(isNewReceived()){
             action(lastReceived);
+        }
 
-            if(currentAction == 0 && referenceTemp == 4){
-                PORTB ^= (1 << LED_1);
-            }
+        if(referenceTemp > getTempReading()){
+            PORTB |= (1 << LED_1);
+        } else {
+            PORTB &= ~(1 << LED_1);
         }
     }
 
