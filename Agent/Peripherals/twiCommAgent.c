@@ -167,7 +167,7 @@ ISR( USI_OVF_vect) {
 		case slaveReceiveData:
             comMode = masterWriteData;
             lastReceived = USIDR;
-            isNewReceived = true;
+            newReceived = true;
             sendACK();
 
             break;
@@ -202,4 +202,13 @@ ISR( USI_OVF_vect) {
             initStartConditionMode();
             break;
 	}
+}
+
+bool isNewReceived(void){
+    if(newReceived){
+        newReceived = false;
+        return true;
+    }
+
+    return false;
 }

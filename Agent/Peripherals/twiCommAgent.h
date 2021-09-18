@@ -22,10 +22,11 @@ enum modes {addressMode,
 
 /* Data transmision variables */
 volatile uint8_t lastReceived;
-volatile bool isNewReceived;
+volatile bool newReceived;
 volatile uint8_t toTransmit;
 volatile bool isTransmited;
 volatile enum modes comMode;
 uint8_t slaveAddress;
 
 void initTWI(uint8_t);
+bool isNewReceived(void);

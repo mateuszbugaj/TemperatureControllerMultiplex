@@ -56,21 +56,43 @@ void action(uint8_t commandCode, uint16_t number){
     switch (commandCode){
         case SET_REFRENCE_TEMP_CODE:
             printString(". Writing reference temperature value to the agent");
+
+            /* Send code */
+            TWIStart();
+            TWISendAddress(AGENT_ADDRESS, WRITE_BYTE);
+            TWISendData(SET_REFRENCE_TEMP_CODE);
+            TWIStop();
+
+            /* Send data */
             TWIStart();
             TWISendAddress(AGENT_ADDRESS, WRITE_BYTE);
             TWISendData(number);
             TWIStop();
+
             break;
 
         case GET_AGENT_TEMP_CODE:
             printString(". Getting temperature reading from the agent");
-            TWIStart();
-            TWISendAddress(number, READ_BYTE);
-            uint8_t data = TWIGetData(SEND_NACK);
 
-            if(isError()){
-                printString(". Error while receiving data from agent");
-            } else {
+            /* Send code */
+            TWIStart();
+            TWISendAddress(number, WRITE_BYTE);
+            _delay_ms(50);
+            if(isError()) printString(". Error while addressing agent");
+
+            TWISendData(GET_AGENT_TEMP_CODE);
+            if(isError()) printString(". Error while sending command");
+
+            TWIStop();
+
+            _delay_ms(50);
+
+            if(!isError()){
+
+                /* Read data */
+                TWIStart();
+                TWISendAddress(number, READ_BYTE);
+                uint8_t data = TWIGetData(SEND_NACK);
                 char log[100] = { 0 };
                 snprintf(log, 100, "Data from agent %d: %d", number, data);
                 printString(log);
